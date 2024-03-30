@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"strconv"
 )
 
@@ -44,4 +45,12 @@ func DecodeMessage(data []byte) (string, []byte, error) {
 		return "", nil, err
 	}
 	return message.Method, content[:contentLength], nil
+}
+
+func EncodeMessage(message any) string {
+	messageBytes, err := json.Marshal(message)
+	if err != nil {
+		panic(err)
+	}
+	return fmt.Sprintf("Content-Length: %d\r\n\r\n%s", len(messageBytes), messageBytes)
 }

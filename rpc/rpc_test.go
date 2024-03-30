@@ -6,6 +6,10 @@ import (
 	"testing"
 )
 
+var baseMessage = BaseMessage{
+	Method: "hello",
+}
+
 var content = "{\"method\":\"hello\"}"
 
 func createMessage(content string) (string, []byte, int) {
@@ -85,5 +89,13 @@ func TestDecodeNotABaseMessage(t *testing.T) {
 	_, _, err := DecodeMessage(messageBytes)
 	if err == nil {
 		t.Fatalf("Invalid content, should not decode message")
+	}
+}
+
+func TestEncodeMessage(t *testing.T) {
+	message, _, _ := createMessage(content)
+	encoded := EncodeMessage(baseMessage)
+	if encoded != message {
+		t.Fatalf("Encoded content does not match content, got \"%s\"", encoded)
 	}
 }
