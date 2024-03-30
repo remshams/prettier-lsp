@@ -30,8 +30,6 @@ func main() {
 }
 
 func handleMessage(logger *log.Logger, writer io.Writer, method string, content []byte) {
-	logger.Printf("Method: %s", method)
-	logger.Printf("Content %s", content)
 	switch method {
 	case "initialize":
 		var request lsp.InitializeRequest
@@ -42,6 +40,13 @@ func handleMessage(logger *log.Logger, writer io.Writer, method string, content 
 		logger.Printf("Connected to %s %s", request.Params.ClientInfo.Name, request.Params.ClientInfo.Version)
 		msg := lsp.CreateInitializeResult(request.Id)
 		writeResponse(writer, msg)
+	case "textDocument/didOpen":
+		var request lsp.DidOpenTextDocumentNotification
+		err := json.Unmarshal(content, &request)
+		if err != nil {
+			logger.Printf("Could not parse request: %s", err)
+		}
+		logger.Printf("Opened file %s", request.Params.TextDocument.URI)
 	}
 }
 
