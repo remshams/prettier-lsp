@@ -25,7 +25,7 @@ type InitializeResult struct {
 }
 
 type ServerCapabilities struct {
-	TextDocumentSync int `json:"textDocumentSync"`
+	TextDocumentSync TextDocumentSyncOptions `json:"textDocumentSync"`
 }
 
 type ServerInfo struct {
@@ -41,7 +41,11 @@ func CreateInitializeResult(id int) InitializeResponse {
 		},
 		Result: InitializeResult{
 			Capabilities: ServerCapabilities{
-				TextDocumentSync: 1,
+				TextDocumentSync: TextDocumentSyncOptions{
+					OpenClose: true,
+					WillSave:  true,
+					Change:    1,
+				},
 			},
 			ServerInfo: ServerInfo{
 				Name:    "prettier-lsp",

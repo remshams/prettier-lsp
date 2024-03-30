@@ -54,6 +54,8 @@ func handleMessage(logger *log.Logger, writer io.Writer, method string, content 
 			logger.Printf("Could not parse request: %s", err)
 		}
 		logger.Printf("Change file %s, changes: %s", request.Params.TextDocument.URI, request.Params.ContentChanges[0].Text)
+	default:
+		logger.Printf("Method: %s", method)
 	}
 }
 

@@ -15,3 +15,9 @@ type VersionTextDocumentIdentifier struct {
 	TextDocumentIdentifier
 	Version int `json:"version"`
 }
+
+type TextDocumentSyncOptions struct {
+	OpenClose bool `json:"openClose"`
+	WillSave  bool `json:"willSave"`
+	Change    int  `json:"change"`
+}
