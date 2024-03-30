@@ -2,13 +2,23 @@ package rpc
 
 import (
 	"bytes"
+	"fmt"
 	"testing"
 )
 
-var content = "Content-Length: 11\r\n\r\nHello World"
+var content = "{\"method\":\"hello\"}"
+
+func createMessage(content string) (string, []byte, int) {
+	contentLength := len(content)
+	header := fmt.Sprintf("Content-Length: %d\r\n\r\n", contentLength)
+	message := header + content
+	messageBytes := []byte(message)
+	return message, messageBytes, contentLength
+}
 
 func TestSplitIncomplete(t *testing.T) {
-	before, _, _ := bytes.Cut([]byte(content), []byte(" "))
+	_, messageBytes, _ := createMessage(content)
+	before, _, _ := bytes.Cut(messageBytes, []byte(" "))
 	advance, _, err := Split(before, false)
 	if err != nil {
 		t.Fatalf("Could not split")
@@ -19,7 +29,8 @@ func TestSplitIncomplete(t *testing.T) {
 }
 
 func TestSplitJustContentType(t *testing.T) {
-	before, _, _ := bytes.Cut([]byte(content), []byte{'\r', '\n', '\r', '\n'})
+	_, messageBytes, _ := createMessage(content)
+	before, _, _ := bytes.Cut(messageBytes, []byte{'\r', '\n', '\r', '\n'})
 	advance, _, err := Split(before, false)
 	if err != nil {
 		t.Fatalf("Could not split")
@@ -30,7 +41,8 @@ func TestSplitJustContentType(t *testing.T) {
 }
 
 func TestSplitContentIncomplete(t *testing.T) {
-	before, _, _ := bytes.Cut([]byte(content), []byte("World"))
+	_, messageBytes, _ := createMessage(content)
+	before, _, _ := bytes.Cut(messageBytes, []byte("method"))
 	advance, _, err := Split(before, false)
 	if err != nil {
 		t.Fatalf("Could not split")
@@ -41,17 +53,37 @@ func TestSplitContentIncomplete(t *testing.T) {
 }
 
 func TestSplitCompleteContent(t *testing.T) {
-	advance, data, err := Split([]byte(content), false)
+	message, messageBytes, contentLength := createMessage(content)
+	advance, data, err := Split(messageBytes, false)
 	if err != nil {
 		t.Fatalf("Could not split")
 	}
 
-	// "Content-Length: 11" + "\r\n\r\n" + "Hello World"
-	totalLength := 18 + 4 + 11
+	// "Content-Length: {contentLength}" + "\r\n\r\n" + "Hello World"
+	totalLength := 18 + 4 + contentLength
 	if advance != totalLength {
 		t.Fatalf("Content complete, should advance by %d, got %d", totalLength, advance)
 	}
-	if string(data) != content {
+	if string(data) != message {
 		t.Fatalf("Content complete, should return all data, got \"%s\"", data)
+	}
+}
+
+func TestDecodeMessage(t *testing.T) {
+	_, messageBytes, _ := createMessage(content)
+	decoded, _, err := DecodeMessage(messageBytes)
+	if err != nil {
+		t.Fatalf("Could not decode message: %s", err)
+	}
+	if decoded != "hello" {
+		t.Fatalf("Decoded content does not match content, got \"%s\"", decoded)
+	}
+}
+
+func TestDecodeNotABaseMessage(t *testing.T) {
+	_, messageBytes, _ := createMessage("Hello World")
+	_, _, err := DecodeMessage(messageBytes)
+	if err == nil {
+		t.Fatalf("Invalid content, should not decode message")
 	}
 }
