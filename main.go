@@ -7,7 +7,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/remshams/prettier-lsp/.git/lsp"
+	"github.com/remshams/prettier-lsp/lsp"
 	"github.com/remshams/prettier-lsp/rpc"
 )
 
@@ -47,6 +47,13 @@ func handleMessage(logger *log.Logger, writer io.Writer, method string, content 
 			logger.Printf("Could not parse request: %s", err)
 		}
 		logger.Printf("Opened file %s", request.Params.TextDocument.URI)
+	case "textDocument/didChange":
+		var request lsp.DidChangeTextDocumentNotification
+		err := json.Unmarshal(content, &request)
+		if err != nil {
+			logger.Printf("Could not parse request: %s", err)
+		}
+		logger.Printf("Change file %s, changes: %s", request.Params.TextDocument.URI, request.Params.ContentChanges[0].Text)
 	}
 }
 
