@@ -2,9 +2,12 @@ package main
 
 import (
 	"bufio"
+	"encoding/json"
+	"io"
 	"log"
 	"os"
 
+	"github.com/remshams/prettier-lsp/.git/lsp"
 	"github.com/remshams/prettier-lsp/rpc"
 )
 
@@ -13,6 +16,8 @@ func main() {
 	scanner := bufio.NewScanner(os.Stdin)
 	scanner.Split(rpc.Split)
 
+	writer := os.Stdout
+
 	for scanner.Scan() {
 		msg := scanner.Bytes()
 		method, contents, err := rpc.DecodeMessage(msg)
@@ -20,13 +25,24 @@ func main() {
 			logger.Println("Could not decode message")
 			continue
 		}
-		handleMessage(logger, method, contents)
+		handleMessage(logger, writer, method, contents)
 	}
 }
 
-func handleMessage(logger *log.Logger, method string, content []byte) {
+func handleMessage(logger *log.Logger, writer io.Writer, method string, content []byte) {
 	logger.Printf("Method: %s", method)
 	logger.Printf("Content %s", content)
+	switch method {
+	case "initialize":
+		var request lsp.InitializeRequest
+		err := json.Unmarshal(content, &request)
+		if err != nil {
+			logger.Printf("Could not parsed request: %s", err)
+		}
+		logger.Printf("Connected to %s %s", request.Params.ClientInfo.Name, request.Params.ClientInfo.Version)
+		msg := lsp.CreateInitializeResult(request.Id)
+		writeResponse(writer, msg)
+	}
 }
 
 func getLogger(fileName string) *log.Logger {
@@ -35,4 +51,9 @@ func getLogger(fileName string) *log.Logger {
 		panic("Could not setup logger")
 	}
 	return log.New(logfile, "[prettier-lsp]", log.Ldate|log.Ltime|log.Lshortfile)
+}
+
+func writeResponse(writer io.Writer, msg any) {
+	reply := rpc.EncodeMessage(msg)
+	writer.Write([]byte(reply))
 }
