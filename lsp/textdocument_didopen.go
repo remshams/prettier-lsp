@@ -2,7 +2,7 @@ package lsp
 
 type DidOpenTextDocumentNotification struct {
 	Notification
-	Params DidOpenTextDocumentParams
+	Params DidOpenTextDocumentParams `json:"params"`
 }
 
 type DidOpenTextDocumentParams struct {

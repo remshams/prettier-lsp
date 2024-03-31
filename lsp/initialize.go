@@ -42,9 +42,9 @@ func CreateInitializeResult(id int) InitializeResponse {
 		Result: InitializeResult{
 			Capabilities: ServerCapabilities{
 				TextDocumentSync: TextDocumentSyncOptions{
-					OpenClose: true,
-					WillSave:  true,
-					Change:    1,
+					OpenClose:         true,
+					WillSaveWaitUntil: true,
+					Change:            1,
 				},
 			},
 			ServerInfo: ServerInfo{

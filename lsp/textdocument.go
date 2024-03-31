@@ -17,7 +17,17 @@ type VersionTextDocumentIdentifier struct {
 }
 
 type TextDocumentSyncOptions struct {
-	OpenClose bool `json:"openClose"`
-	WillSave  bool `json:"willSave"`
-	Change    int  `json:"change"`
+	OpenClose         bool `json:"openClose"`
+	WillSaveWaitUntil bool `json:"willSaveWaitUntil"`
+	Change            int  `json:"change"`
+}
+
+type Position struct {
+	Line      int `json:"line"`
+	Character int `json:"character"`
+}
+
+type Range struct {
+	Start Position `json:"start"`
+	End   Position `json:"end"`
 }
