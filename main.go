@@ -2,10 +2,12 @@ package main
 
 import (
 	"bufio"
+	"bytes"
 	"encoding/json"
 	"io"
 	"log"
 	"os"
+	"os/exec"
 
 	"github.com/remshams/prettier-lsp/analysis"
 	"github.com/remshams/prettier-lsp/lsp"
@@ -67,6 +69,26 @@ func handleMessage(logger *log.Logger, writer io.Writer, state analysis.State, m
 			logger.Printf("Could not parse request: %s", err)
 		}
 		logger.Printf("Will save file %s", request.Params.TextDocument.URI)
+		cmd := exec.Command("prettierd", "stdin-filepath readme.md")
+
+		// Set up input and output buffers
+		oldText := state.Documents[request.Params.TextDocument.URI]
+		in := bytes.NewBufferString(oldText)
+		var out bytes.Buffer
+		var stderr bytes.Buffer
+		cmd.Stdin = in
+		cmd.Stdout = &out
+		cmd.Stderr = &stderr
+		formattedText := oldText
+		err = cmd.Run()
+		if err == nil {
+			formattedText = out.String()
+		} else {
+			logger.Printf("Prettier error: %v", err)
+			logger.Printf("stderr: %s", stderr.String())
+		}
+		response := lsp.CreateWillSaveWaitUntilTextDocumentResponse(request.Id, state.Documents[request.Params.TextDocument.URI], formattedText)
+		writeResponse(writer, response)
 	default:
 		logger.Printf("Method: %s", method)
 	}
