@@ -1,7 +1,11 @@
 package lsp
 
+import (
+	"strings"
+)
+
 type WillSaveWaitUntilTextDocumentNotification struct {
-	Notification
+	Request
 	Params WillSaveWaitUntilTextDocumentParams `json:"params"`
 }
 
@@ -10,7 +14,7 @@ type WillSaveWaitUntilTextDocumentParams struct {
 }
 
 type TextEditResponse struct {
-	Range
+	Range   `json:"range"`
 	NewText string `json:"newText"`
 }
 
@@ -19,10 +23,17 @@ type WillSaveWaitUnitlTextDocumentResponse struct {
 	Result []TextEditResponse `json:"result"`
 }
 
-func CreateWillSaveWaitUntilTextDocumentResponse(id int, startPosition Position, text string) WillSaveWaitUnitlTextDocumentResponse {
+func CreateWillSaveWaitUntilTextDocumentResponse(id int, oldText string, newText string) WillSaveWaitUnitlTextDocumentResponse {
+	lines := strings.Split(oldText, "\n")
+	lastLineNumber := len(lines) - 1
+	lastCharacterNumber := len(lines[lastLineNumber])
+	startPosition := Position{
+		Line:      0,
+		Character: 0,
+	}
 	endPosition := Position{
-		Line:      startPosition.Line,
-		Character: startPosition.Character + len(text),
+		Line:      lastLineNumber,
+		Character: lastCharacterNumber,
 	}
 	return WillSaveWaitUnitlTextDocumentResponse{
 		Response: Response{
@@ -35,7 +46,7 @@ func CreateWillSaveWaitUntilTextDocumentResponse(id int, startPosition Position,
 					Start: startPosition,
 					End:   endPosition,
 				},
-				NewText: text,
+				NewText: newText,
 			},
 		},
 	}
