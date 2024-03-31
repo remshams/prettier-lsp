@@ -15,11 +15,9 @@ func NewState(logger *log.Logger) State {
 }
 
 func (s *State) OpenDocument(uri string, content string) {
-	s.logger.Printf("Opened file with content %s", content)
 	s.Documents[uri] = content
 }
 
 func (s *State) UpdateDocument(uri string, content string) {
-	s.logger.Printf("Update file with content %s", content)
 	s.Documents[uri] = content
 }
