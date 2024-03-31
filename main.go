@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/remshams/prettier-lsp/analysis"
 	"github.com/remshams/prettier-lsp/lsp"
 	"github.com/remshams/prettier-lsp/rpc"
 )
@@ -15,6 +16,7 @@ func main() {
 	logger := getLogger("/home/remshams/coding/prettier-lsp/prettier-lsp.log")
 	scanner := bufio.NewScanner(os.Stdin)
 	scanner.Split(rpc.Split)
+	state := analysis.NewState(logger)
 
 	writer := os.Stdout
 
@@ -25,11 +27,11 @@ func main() {
 			logger.Println("Could not decode message")
 			continue
 		}
-		handleMessage(logger, writer, method, contents)
+		handleMessage(logger, writer, state, method, contents)
 	}
 }
 
-func handleMessage(logger *log.Logger, writer io.Writer, method string, content []byte) {
+func handleMessage(logger *log.Logger, writer io.Writer, state analysis.State, method string, content []byte) {
 	switch method {
 	case "initialize":
 		var request lsp.InitializeRequest
@@ -47,13 +49,24 @@ func handleMessage(logger *log.Logger, writer io.Writer, method string, content 
 			logger.Printf("Could not parse request: %s", err)
 		}
 		logger.Printf("Opened file %s", request.Params.TextDocument.URI)
+		state.OpenDocument(request.Params.TextDocument.URI, request.Params.TextDocument.Text)
 	case "textDocument/didChange":
 		var request lsp.DidChangeTextDocumentNotification
 		err := json.Unmarshal(content, &request)
 		if err != nil {
 			logger.Printf("Could not parse request: %s", err)
 		}
-		logger.Printf("Change file %s, changes: %s", request.Params.TextDocument.URI, request.Params.ContentChanges[0].Text)
+		for _, change := range request.Params.ContentChanges {
+			logger.Printf("Changed file %s", request.Params.TextDocument.URI)
+			state.UpdateDocument(request.Params.TextDocument.URI, change.Text)
+		}
+	case "textDocument/willSaveWaitUntil":
+		var request lsp.WillSaveWaitUntilTextDocumentNotification
+		err := json.Unmarshal(content, &request)
+		if err != nil {
+			logger.Printf("Could not parse request: %s", err)
+		}
+		logger.Printf("Will save file %s", request.Params.TextDocument.URI)
 	default:
 		logger.Printf("Method: %s", method)
 	}
