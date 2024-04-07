@@ -63,13 +63,13 @@ func handleMessage(logger *log.Logger, writer io.Writer, state analysis.State, m
 			state.UpdateDocument(request.Params.TextDocument.URI, change.Text)
 		}
 	case "textDocument/formatting":
-		logger.Printf("Prettier formatting")
 		var request lsp.FormattingTextDocumentRequest
 		err := json.Unmarshal(content, &request)
 		if err != nil {
 			logger.Printf("Could not parse request: %s", err)
 		}
-		cmd := exec.Command("prettierd", "stdin-filepath readme.md")
+		logger.Printf("Prettier formatting for: %s", request.Params.TextDocument.URI)
+		cmd := exec.Command("prettierd", request.Params.TextDocument.URI)
 
 		// Set up input and output buffers
 		oldText := state.Documents[request.Params.TextDocument.URI]
