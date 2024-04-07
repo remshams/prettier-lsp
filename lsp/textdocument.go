@@ -31,3 +31,8 @@ type Range struct {
 	Start Position `json:"start"`
 	End   Position `json:"end"`
 }
+
+type TextEditResponse struct {
+	Range   `json:"range"`
+	NewText string `json:"newText"`
+}
