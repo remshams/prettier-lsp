@@ -89,6 +89,33 @@ func handleMessage(logger *log.Logger, writer io.Writer, state analysis.State, m
 		}
 		response := lsp.CreateWillSaveWaitUntilTextDocumentResponse(request.Id, state.Documents[request.Params.TextDocument.URI], formattedText)
 		writeResponse(writer, response)
+	case "textDocument/formatting":
+		logger.Printf("Prettier formatting")
+		var request lsp.FormattingTextDocumentRequest
+		err := json.Unmarshal(content, &request)
+		if err != nil {
+			logger.Printf("Could not parse request: %s", err)
+		}
+		cmd := exec.Command("prettierd", "stdin-filepath readme.md")
+
+		// Set up input and output buffers
+		oldText := state.Documents[request.Params.TextDocument.URI]
+		in := bytes.NewBufferString(oldText)
+		var out bytes.Buffer
+		var stderr bytes.Buffer
+		cmd.Stdin = in
+		cmd.Stdout = &out
+		cmd.Stderr = &stderr
+		formattedText := oldText
+		err = cmd.Run()
+		if err == nil {
+			formattedText = out.String()
+		} else {
+			logger.Printf("Prettier error: %v", err)
+			logger.Printf("stderr: %s", stderr.String())
+		}
+		response := lsp.CreateFormattingTextDocumentResponse(request.Id, state.Documents[request.Params.TextDocument.URI], formattedText)
+		writeResponse(writer, response)
 	default:
 		logger.Printf("Method: %s", method)
 	}
