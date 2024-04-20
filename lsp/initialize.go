@@ -36,10 +36,7 @@ type ServerInfo struct {
 
 func CreateInitializeResult(id int) InitializeResponse {
 	return InitializeResponse{
-		Response: Response{
-			RPC: "2.0",
-			Id:  &id,
-		},
+		Response: CreateResponse(id),
 		Result: InitializeResult{
 			Capabilities: ServerCapabilities{
 				TextDocumentSync: TextDocumentSyncOptions{

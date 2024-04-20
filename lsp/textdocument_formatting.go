@@ -30,10 +30,7 @@ func CreateFormattingTextDocumentResponse(id int, oldText string, newText string
 		Character: textMetadata.LastLineCharacterNumber,
 	}
 	return FormattingTextDocumentResponse{
-		Response: Response{
-			RPC: "2.0",
-			Id:  &id,
-		},
+		Response: CreateResponse(id),
 		Result: []TextEditResponse{
 			{
 				Range: Range{

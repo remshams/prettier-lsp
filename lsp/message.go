@@ -15,3 +15,10 @@ type Notification struct {
 	RPC    string `json:"jsonrpc"`
 	Method string `json:"method"`
 }
+
+func CreateResponse(id int) Response {
+	return Response{
+		RPC: "2.0",
+		Id:  &id,
+	}
+}
