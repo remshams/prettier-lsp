@@ -34,7 +34,7 @@ type ServerInfo struct {
 	Version string `json:"version"`
 }
 
-func CreateInitializeResult(id int) InitializeResponse {
+func CreateInitializeResult(id int, name string, version string) InitializeResponse {
 	return InitializeResponse{
 		Response: CreateResponse(id),
 		Result: InitializeResult{
@@ -47,8 +47,8 @@ func CreateInitializeResult(id int) InitializeResponse {
 				DocumentFormattingProvider: true,
 			},
 			ServerInfo: ServerInfo{
-				Name:    "prettier-lsp",
-				Version: "0.0.1",
+				Name:    name,
+				Version: version,
 			},
 		},
 	}

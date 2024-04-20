@@ -40,7 +40,7 @@ func handleMessage(logger *log.Logger, writer io.Writer, state analysis.State, m
 			logger.Printf("Could not parsed request: %s", err)
 		}
 		logger.Printf("Connected to %s %s", request.Params.ClientInfo.Name, request.Params.ClientInfo.Version)
-		msg := lsp.CreateInitializeResult(request.Id)
+		msg := lsp.CreateInitializeResult(request.Id, "prettier-lsp", "0.0.1")
 		writeResponse(writer, msg)
 	case "textDocument/didOpen":
 		var request lsp.DidOpenTextDocumentNotification
