@@ -2,12 +2,10 @@ package main
 
 import (
 	"bufio"
-	"bytes"
 	"encoding/json"
 	"io"
 	"log"
 	"os"
-	"os/exec"
 
 	"github.com/remshams/prettier-lsp/analysis"
 	"github.com/remshams/prettier-lsp/lsp"
@@ -68,26 +66,15 @@ func handleMessage(logger *log.Logger, writer io.Writer, state analysis.State, m
 		if err != nil {
 			logger.Printf("Could not parse request: %s", err)
 		}
-		logger.Printf("Prettier formatting for: %s", request.Params.TextDocument.URI)
-		cmd := exec.Command("prettierd", request.Params.TextDocument.URI)
-
-		// Set up input and output buffers
-		oldText := state.Documents[request.Params.TextDocument.URI]
-		in := bytes.NewBufferString(oldText)
-		var out bytes.Buffer
-		var stderr bytes.Buffer
-		cmd.Stdin = in
-		cmd.Stdout = &out
-		cmd.Stderr = &stderr
+		fileUri := request.Params.TextDocument.URI
+		logger.Printf("Prettier formatting for: %s", fileUri)
+		oldText := state.Documents[fileUri]
 		formattedText := oldText
-		err = cmd.Run()
-		if err == nil {
-			formattedText = out.String()
-		} else {
+		formattedText, err = analysis.FormatWithPrettier(oldText, fileUri)
+		if err != nil {
 			logger.Printf("Prettier error: %v", err)
-			logger.Printf("stderr: %s", stderr.String())
 		}
-		response := lsp.CreateFormattingTextDocumentResponse(request.Id, state.Documents[request.Params.TextDocument.URI], formattedText)
+		response := lsp.CreateFormattingTextDocumentResponse(request.Id, oldText, formattedText)
 		writeResponse(writer, response)
 	default:
 		logger.Printf("Method: %s", method)
