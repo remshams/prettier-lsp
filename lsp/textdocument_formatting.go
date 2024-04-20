@@ -1,6 +1,8 @@
 package lsp
 
-import "strings"
+import (
+	"github.com/remshams/prettier-lsp/analysis"
+)
 
 type FormattingTextDocumentRequest struct {
 	Request
@@ -18,16 +20,14 @@ type FormattingTextDocumentResponse struct {
 }
 
 func CreateFormattingTextDocumentResponse(id int, oldText string, newText string) FormattingTextDocumentResponse {
-	lines := strings.Split(oldText, "\n")
-	lastLineNumber := len(lines) - 1
-	lastCharacterNumber := len(lines[lastLineNumber])
+	textMetadata := analysis.GetTextMetadata(oldText)
 	startPosition := Position{
 		Line:      0,
 		Character: 0,
 	}
 	endPosition := Position{
-		Line:      lastLineNumber,
-		Character: lastCharacterNumber,
+		Line:      textMetadata.LastLineNumber,
+		Character: textMetadata.LastLineCharacterNumber,
 	}
 	return FormattingTextDocumentResponse{
 		Response: Response{
