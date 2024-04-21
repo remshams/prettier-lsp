@@ -14,6 +14,11 @@ func NewState(logger *log.Logger) State {
 	}
 }
 
+func (s *State) HasDocument(uri string) bool {
+	_, ok := s.Documents[uri]
+	return ok
+}
+
 func (s *State) OpenDocument(uri string, content string) {
 	s.Documents[uri] = content
 }

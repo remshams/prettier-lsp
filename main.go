@@ -67,6 +67,10 @@ func handleMessage(logger *log.Logger, writer io.Writer, state analysis.State, m
 			logger.Printf("Could not parse request: %s", err)
 		}
 		fileUri := request.Params.TextDocument.URI
+		if !state.HasDocument(fileUri) {
+			logger.Printf("Document %s not found, skipping formatting", fileUri)
+			break
+		}
 		logger.Printf("Prettier formatting for: %s", fileUri)
 		oldText := state.Documents[fileUri]
 		formattedText := oldText
